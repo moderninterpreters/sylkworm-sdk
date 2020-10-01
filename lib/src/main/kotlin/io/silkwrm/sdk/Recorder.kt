@@ -6,11 +6,10 @@ import java.io.File
 
 class Recorder {
 
-    fun getAllImages(dir: String) {
+    fun getAllImages(dir: String): List<File> {
         var dirFile = File(dir)
-        for (file in dirFile.listFiles()) {
-            System.out.println("got file: " + file)
-        }
+        return dirFile.listFiles().toList()
+                .filter { x -> x.absolutePath.endsWith(".png") }
     }
     private fun run(args: Array<String>) {
         var options = Options()
@@ -20,7 +19,11 @@ class Recorder {
 
         var dir = cli.getOptionValue('d')
 
-        getAllImages(dir)
+
+        var allImages = getAllImages(dir);
+        for (file in allImages) {
+            System.out.println("got file: " + file)
+        }
         System.out.println("hello " + dir)
     }
 
