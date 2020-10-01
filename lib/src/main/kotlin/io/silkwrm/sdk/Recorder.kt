@@ -1,12 +1,17 @@
 package io.silkwrm.sdk
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import com.github.kittinunf.fuel.Fuel
 import com.github.kittinunf.fuel.jackson.objectBody
+import com.github.kittinunf.fuel.jackson.jacksonDeserializerOf
 import org.apache.commons.cli.DefaultParser
 import org.apache.commons.cli.Options
 import java.io.File
 
-data class ImageUploadResponse(var imageId: String = "")
+data class ImageUploadResponse(var imageId: String = "",
+                               var uploadUrl:String = "")
+
+data class Result<T>(var result: Boolean = false, var response: T? = null)
 
 class Recorder {
     fun getAllImages(dir: String): List<File> {
@@ -23,12 +28,15 @@ class Recorder {
         var dir = cli.getOptionValue('d')
 
 
+        val mapper = ObjectMapper()
         var allImages = getAllImages(dir);
         for (file in allImages) {
             System.out.println("Uploading file: " + file)
-            Fuel.post("https://silkwrm.tdrhq.com/api/prepare-upload", listOf("name" to "foo", "hash" to "blah"))
-                    .objectBody(ImageUploadResponse())
-                    .response()
+            val result : Result<ImageUploadResponse>  =
+                Fuel.post("https://silkwrm.tdrhq.com/api/prepare-upload", listOf("name" to "foo", "hash" to "blah"))
+                  .responseObject<Result<ImageUploadResponse>>(jacksonDeserializerOf(mapper)).third.get()
+
+            System.out.println("Got upload url: " + result.response?.uploadUrl)
         }
 
 
