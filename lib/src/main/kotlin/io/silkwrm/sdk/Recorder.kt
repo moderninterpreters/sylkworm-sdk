@@ -3,23 +3,25 @@ package io.silkwrm.sdk
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.github.kittinunf.fuel.Fuel
 import com.github.kittinunf.fuel.core.FileDataPart
-import com.github.kittinunf.fuel.jackson.objectBody
 import com.github.kittinunf.fuel.jackson.jacksonDeserializerOf
 import com.google.common.hash.Hashing
 import com.google.common.io.Files
 import org.apache.commons.cli.DefaultParser
 import org.apache.commons.cli.Options
 import java.io.File
-import java.io.FileInputStream
-import java.io.FileOutputStream
-import java.security.MessageDigest
+import java.lang.RuntimeException
 
 data class ImageUploadResponse(var imageId: String? = "",
                                var uploadUrl:String? = "")
 
+data class CreateRunResponse(var runId: Int = 0)
+
 data class Result<T>(var result: Boolean = false, var response: T? = null)
+data class ScreenshotRecord(val name: String, val imageId: String)
 
 class Recorder {
+    var mapper = ObjectMapper()
+
     fun getAllImages(dir: String) = run {
         var dirFile = File(dir)
         dirFile.listFiles().toList()
@@ -31,27 +33,46 @@ class Recorder {
     }
 
     private fun run(args: Array<String>) {
-        var options = Options()
+        val options = Options()
         options.addOption("d", "dir", true, "Directory with screenshots")
-        var parser = DefaultParser()
-        var cli = parser.parse(options, args)
+        options.addOption("c", "channel", true, "Channel name under which the screenshots should go under")
 
-        var dir = cli.getOptionValue('d')
+        val parser = DefaultParser()
+        val cli = parser.parse(options, args)
 
-        val mapper = ObjectMapper()
-        var allImages = getAllImages(dir);
-        for (file in allImages) {
-            uploadImage(file, mapper)
+        val dir = cli.getOptionValue('d')
+        val channel = cli.getOptionValue('c')
+
+        if (channel.isNullOrEmpty())
+            throw RuntimeException("empty channel")
+
+        if (dir.isNullOrEmpty())
+            throw RuntimeException("no directory specified")
+
+        val allImages = getAllImages(dir).map {file ->
+            val response = uploadImage(file)
+            ScreenshotRecord(file.name, response.imageId!!)
         }
 
+        makeRun(channel!!, allImages)
 
     }
 
-    private fun uploadImage(file: File, mapper: ObjectMapper) = run {
+    private fun makeRun(channel: String, allImages: List<ScreenshotRecord>) = run {
+        val recordsJson = mapper.writeValueAsString(allImages)
+        Fuel.post(buildUrl("/api/run"), listOf("channel" to channel, "screenshot-records" to recordsJson))
+            .responseObject<Result<CreateRunResponse>>(jacksonDeserializerOf(mapper))
+    }
+
+    fun buildUrl(url: String) = run {
+        "https://silkwrm.tdrhq.com" + url
+    }
+
+    private fun uploadImage(file: File) = run {
         System.out.println("Uploading file: " + file)
         val hash = getDigest(file)
         val result: Result<ImageUploadResponse> =
-            Fuel.post("https://silkwrm.tdrhq.com/api/prepare-upload", listOf("name" to file.name, "hash" to hash))
+            Fuel.post(buildUrl("/api/prepare-upload"), listOf("name" to file.name, "hash" to hash))
                 .responseObject<Result<ImageUploadResponse>>(jacksonDeserializerOf(mapper)).third.get()
 
         val response = result.response!!
