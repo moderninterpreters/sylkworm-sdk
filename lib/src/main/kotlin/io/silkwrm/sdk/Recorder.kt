@@ -2,6 +2,7 @@ package io.silkwrm.sdk
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.github.kittinunf.fuel.Fuel
+import com.github.kittinunf.fuel.core.FileDataPart
 import com.github.kittinunf.fuel.jackson.objectBody
 import com.github.kittinunf.fuel.jackson.jacksonDeserializerOf
 import com.google.common.hash.Hashing
@@ -13,8 +14,8 @@ import java.io.FileInputStream
 import java.io.FileOutputStream
 import java.security.MessageDigest
 
-data class ImageUploadResponse(var imageId: String = "",
-                               var uploadUrl:String = "")
+data class ImageUploadResponse(var imageId: String? = "",
+                               var uploadUrl:String? = "")
 
 data class Result<T>(var result: Boolean = false, var response: T? = null)
 
@@ -37,23 +38,34 @@ class Recorder {
 
         var dir = cli.getOptionValue('d')
 
-        val md = MessageDigest.getInstance("MD5")
-
         val mapper = ObjectMapper()
         var allImages = getAllImages(dir);
         for (file in allImages) {
-            System.out.println("Uploading file: " + file)
-            val hash = getDigest(file)
-            System.out.println("Got digest: " + hash)
-            val result : Result<ImageUploadResponse>  =
-                Fuel.post("https://silkwrm.tdrhq.com/api/prepare-upload", listOf("name" to "foo", "hash" to "blah"))
-                .responseObject<Result<ImageUploadResponse>>(jacksonDeserializerOf(mapper)).third.get()
-
-            val response = result.response!!
-            System.out.println("Got upload url: " + response.uploadUrl)
+            uploadImage(file, mapper)
         }
 
 
+    }
+
+    private fun uploadImage(file: File, mapper: ObjectMapper) = run {
+        System.out.println("Uploading file: " + file)
+        val hash = getDigest(file)
+        val result: Result<ImageUploadResponse> =
+            Fuel.post("https://silkwrm.tdrhq.com/api/prepare-upload", listOf("name" to file.name, "hash" to hash))
+                .responseObject<Result<ImageUploadResponse>>(jacksonDeserializerOf(mapper)).third.get()
+
+        val response = result.response!!
+
+        if (response.imageId.isNullOrEmpty()) {
+            // let's start the upload process
+            System.out.println("New image, uploading...")
+            Fuel.upload(response.uploadUrl!!)
+                .add(FileDataPart(file, name="files", filename=file.name))
+                .responseObject<Result<ImageUploadResponse>>(jacksonDeserializerOf(mapper)).third.get().response!!
+        } else {
+            System.out.println("reusing existing image")
+            response
+        }
     }
 
     companion object {
