@@ -1,11 +1,14 @@
 package io.silkwrm.sdk
 
+import com.github.kittinunf.fuel.Fuel
+import com.github.kittinunf.fuel.jackson.objectBody
 import org.apache.commons.cli.DefaultParser
 import org.apache.commons.cli.Options
 import java.io.File
 
-class Recorder {
+data class ImageUploadResponse(var imageId: String = "")
 
+class Recorder {
     fun getAllImages(dir: String): List<File> {
         var dirFile = File(dir)
         return dirFile.listFiles().toList()
@@ -22,9 +25,13 @@ class Recorder {
 
         var allImages = getAllImages(dir);
         for (file in allImages) {
-            System.out.println("got file: " + file)
+            System.out.println("Uploading file: " + file)
+            Fuel.post("https://silkwrm.tdrhq.com/api/prepare-upload", listOf("name" to "foo", "hash" to "blah"))
+                    .objectBody(ImageUploadResponse())
+                    .response()
         }
-        System.out.println("hello " + dir)
+
+
     }
 
     companion object {
