@@ -11,3 +11,10 @@ dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib"
     testCompile group: 'junit', name: 'junit', version: '4.12'
 }
+
+
+task runJar(type: JavaExec) {
+   classpath = files('build/libs/lib.jar')
+   classpath += sourceSets.main.runtimeClasspath
+   main = "io.silkwrm.sdk.Recorder"
+}
