@@ -54,7 +54,7 @@ class Recorder {
             ScreenshotRecord(file.name, response.imageId!!)
         }
 
-        makeRun(channel!!, allImages)
+        makeRun(channel, allImages)
 
     }
 
@@ -65,7 +65,7 @@ class Recorder {
     }
 
     fun buildUrl(url: String) = run {
-        "https://silkwrm.tdrhq.com" + url
+        "https://sylkworm.io" + url
     }
 
     private fun uploadImage(file: File) = run {
