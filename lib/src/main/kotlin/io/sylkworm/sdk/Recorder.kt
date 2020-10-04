@@ -39,7 +39,11 @@ class Recorder {
     }
 
     fun readConfig() {
-        val json = File(File(System.getenv("HOME")), ".sylkworm").readText()
+        val file = File(File(System.getenv("HOME")), ".sylkworm")
+        if (!file.exists()) {
+            throw RuntimeException("Could not find config file at " + file)
+        }
+        val json = file.readText()
         cred = mapper.readValue<Credential>(json)
     }
 
