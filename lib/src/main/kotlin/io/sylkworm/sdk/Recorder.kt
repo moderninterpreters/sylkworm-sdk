@@ -1,4 +1,4 @@
-package io.silkwrm.sdk
+package io.sylkworm.sdk
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.github.kittinunf.fuel.Fuel
