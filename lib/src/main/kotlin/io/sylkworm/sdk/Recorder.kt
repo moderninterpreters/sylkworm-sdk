@@ -80,12 +80,17 @@ class Recorder {
     }
 
     private fun makeRun(channel: String, allImages: List<ScreenshotRecord>) = run {
+        System.out.println("Finalizing the reporter run")
         val recordsJson = mapper.writeValueAsString(allImages)
-        Fuel.post(buildUrl("/api/run"),
+        val resp = Fuel.post(buildUrl("/api/run"),
                   listOf("channel" to channel, "screenshot-records" to recordsJson,
                          "api-key" to cred.apiKey,
                          "api-secret-key" to cred.apiSecretKey))
-            .responseObject<Result<CreateRunResponse>>(jacksonDeserializerOf(mapper))
+            .responseObject<Result<CreateRunResponse>>(jacksonDeserializerOf(mapper)).second;
+
+        if (resp.statusCode != 200) {
+            throw RuntimeException("Failed to finalize run, contact support@sylkworm.io for help")
+        }
     }
 
     fun buildUrl(url: String) = run {
