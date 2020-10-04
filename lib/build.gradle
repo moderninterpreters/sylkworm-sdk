@@ -28,6 +28,6 @@ dependencies {
 task runJar(type: JavaExec) {
    classpath = files('build/libs/lib.jar')
    classpath += sourceSets.main.runtimeClasspath
-    main = "io.silkwrm.sdk.Recorder"
+    main = "io.sylkworm.sdk.Recorder"
     args '-d',"example-screenshots", '-c', 'foobar'
 }
