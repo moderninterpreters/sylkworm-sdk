@@ -19,8 +19,12 @@ data class CreateRunResponse(var runId: Int = 0)
 data class Result<T>(var result: Boolean = false, var response: T? = null)
 data class ScreenshotRecord(val name: String, val imageId: String)
 
+data class Credential(val apiKey: String = "6C05BDIKAV1R87OSO2DC",
+                      val apiSecretKey: String = "rDkSozJQBfcYS0pCg6rtBJzVh6iG5lPzbTK2suxd")
+
 class Recorder {
     var mapper = ObjectMapper()
+    val cred = Credential()
 
     fun getAllImages(dir: String) = run {
         var dirFile = File(dir)
@@ -60,7 +64,10 @@ class Recorder {
 
     private fun makeRun(channel: String, allImages: List<ScreenshotRecord>) = run {
         val recordsJson = mapper.writeValueAsString(allImages)
-        Fuel.post(buildUrl("/api/run"), listOf("channel" to channel, "screenshot-records" to recordsJson))
+        Fuel.post(buildUrl("/api/run"),
+                  listOf("channel" to channel, "screenshot-records" to recordsJson,
+                         "api-key" to cred.apiKey,
+                         "api-secret-key" to cred.apiSecretKey))
             .responseObject<Result<CreateRunResponse>>(jacksonDeserializerOf(mapper))
     }
 
@@ -72,7 +79,10 @@ class Recorder {
         System.out.println("Uploading file: " + file)
         val hash = getDigest(file)
         val result: Result<ImageUploadResponse> =
-            Fuel.post(buildUrl("/api/prepare-upload"), listOf("name" to file.name, "hash" to hash))
+            Fuel.post(buildUrl("/api/prepare-upload"),
+                      listOf("name" to file.name, "hash" to hash,
+                         "api-key" to cred.apiKey,
+                         "api-secret-key" to cred.apiSecretKey))
                 .responseObject<Result<ImageUploadResponse>>(jacksonDeserializerOf(mapper)).third.get()
 
         val response = result.response!!
