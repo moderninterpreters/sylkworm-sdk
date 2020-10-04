@@ -10,6 +10,8 @@ import org.apache.commons.cli.DefaultParser
 import org.apache.commons.cli.Options
 import java.io.File
 import java.lang.RuntimeException
+import com.fasterxml.jackson.module.kotlin.KotlinModule
+import com.fasterxml.jackson.module.kotlin.readValue
 
 data class ImageUploadResponse(var imageId: String? = "",
                                var uploadUrl:String? = "")
@@ -19,12 +21,12 @@ data class CreateRunResponse(var runId: Int = 0)
 data class Result<T>(var result: Boolean = false, var response: T? = null)
 data class ScreenshotRecord(val name: String, val imageId: String)
 
-data class Credential(val apiKey: String = "6C05BDIKAV1R87OSO2DC",
-                      val apiSecretKey: String = "rDkSozJQBfcYS0pCg6rtBJzVh6iG5lPzbTK2suxd")
+data class Credential(var apiKey: String = "",
+                      var apiSecretKey: String = "")
 
 class Recorder {
     var mapper = ObjectMapper()
-    val cred = Credential()
+    var cred = Credential()
 
     fun getAllImages(dir: String) = run {
         var dirFile = File(dir)
@@ -36,7 +38,14 @@ class Recorder {
         Files.asByteSource(file).hash(Hashing.sha256()).toString()
     }
 
+    fun readConfig() {
+        val json = File(File(System.getenv("HOME")), ".sylkworm").readText()
+        cred = mapper.readValue<Credential>(json)
+    }
+
     private fun run(args: Array<String>) {
+        mapper.registerModule(KotlinModule())
+        readConfig()
         val options = Options()
         options.addOption("d", "dir", true, "Directory with screenshots")
         options.addOption("c", "channel", true, "Channel name under which the screenshots should go under")
