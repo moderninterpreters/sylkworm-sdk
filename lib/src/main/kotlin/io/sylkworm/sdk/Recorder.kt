@@ -12,6 +12,10 @@ import java.io.File
 import java.lang.RuntimeException
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.fasterxml.jackson.module.kotlin.readValue
+import com.github.kittinunf.fuel.core.Body
+import com.github.kittinunf.fuel.core.requests.DefaultBody
+import com.github.kittinunf.fuel.core.requests.RepeatableBody
+import java.io.ByteArrayInputStream
 
 data class ImageUploadResponse(var imageId: String? = "",
                                var uploadUrl:String? = "")
@@ -35,7 +39,7 @@ class Recorder {
     }
 
     fun getDigest(file: File) = run {
-        Files.asByteSource(file).hash(Hashing.sha256()).toString()
+        Files.asByteSource(file).hash(Hashing.md5()).toString()
     }
 
     fun readConfig() {
@@ -100,16 +104,22 @@ class Recorder {
 
         val response = result.response!!
 
-        if (response.imageId.isNullOrEmpty()) {
+        if (!response.uploadUrl.isNullOrEmpty()) {
             // let's start the upload process
-            System.out.println("New image, uploading...")
-            Fuel.upload(response.uploadUrl!!)
-                .add(FileDataPart(file, name="files", filename=file.name))
-                .responseObject<Result<ImageUploadResponse>>(jacksonDeserializerOf(mapper)).third.get().response!!
+            val arr = file.readBytes()
+            System.out.println("New image, uploading to: " + response.uploadUrl)
+            val code = Fuel.put(response.uploadUrl!!)
+                        .body(file)
+                        .response().second
+
+            if (code.statusCode != 200) {
+                System.out.println(code.toString())
+                throw RuntimeException("Error while uploading image data")
+            }
         } else {
             System.out.println("reusing existing image")
-            response
         }
+        response
     }
 
     companion object {
