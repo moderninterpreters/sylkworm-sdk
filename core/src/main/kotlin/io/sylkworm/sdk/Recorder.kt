@@ -2,7 +2,6 @@ package io.sylkworm.sdk
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.github.kittinunf.fuel.Fuel
-import com.github.kittinunf.fuel.core.FileDataPart
 import com.github.kittinunf.fuel.jackson.jacksonDeserializerOf
 import com.google.common.hash.Hashing
 import com.google.common.io.Files
@@ -12,25 +11,40 @@ import java.io.File
 import java.lang.RuntimeException
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.fasterxml.jackson.module.kotlin.readValue
-import com.github.kittinunf.fuel.core.Body
-import com.github.kittinunf.fuel.core.requests.DefaultBody
-import com.github.kittinunf.fuel.core.requests.RepeatableBody
-import java.io.ByteArrayInputStream
 
 data class ImageUploadResponse(var imageId: String? = "",
                                var uploadUrl:String? = "")
 
 data class CreateRunResponse(var runId: Int = 0)
 
-data class Result<T>(var result: Boolean = false, var response: T? = null)
+data class Result<T>(var result: Boolean = false, var response: T? = null, var error: String? = null)
 data class ScreenshotRecord(val name: String, val imageId: String)
 
 data class Credential(var apiKey: String = "",
                       var apiSecretKey: String = "")
 
-class Recorder {
+fun readConfig() = run {
+    val mapper = ObjectMapper()
+    mapper.registerModule(KotlinModule())
+
+    val homeStr = System.getProperty("user.home")
+    if (homeStr.isNullOrEmpty()) {
+        throw RuntimeException("user.home is not set")
+    }
+    val home = File(homeStr)
+    System.out.println("home dir: " + home)
+    val file = File(home, ".sylkworm")
+    if (!file.exists()) {
+        throw RuntimeException("Could not find config file at " + file)
+    }
+    val json = file.readText()
+    //throw RuntimeException("got json: " + json)
+    mapper.readValue<Credential>(json)
+}
+
+
+class Recorder() {
     var mapper = ObjectMapper()
-    var cred = Credential()
 
     fun getAllImages(dir: String) = run {
         var dirFile = File(dir)
@@ -42,18 +56,8 @@ class Recorder {
         Files.asByteSource(file).hash(Hashing.md5()).toString()
     }
 
-    fun readConfig() {
-        val file = File(File(System.getenv("HOME")), ".sylkworm")
-        if (!file.exists()) {
-            throw RuntimeException("Could not find config file at " + file)
-        }
-        val json = file.readText()
-        cred = mapper.readValue<Credential>(json)
-    }
-
     private fun run(args: Array<String>) {
         mapper.registerModule(KotlinModule())
-        readConfig()
         val options = Options()
         options.addOption("d", "dir", true, "Directory with screenshots")
         options.addOption("c", "channel", true, "Channel name under which the screenshots should go under")
@@ -88,12 +92,12 @@ class Recorder {
         val recordsJson = mapper.writeValueAsString(allImages)
         val resp = Fuel.post(buildUrl("/api/run"),
                   listOf("channel" to channel, "screenshot-records" to recordsJson,
-                         "api-key" to cred.apiKey,
-                         "api-secret-key" to cred.apiSecretKey))
+                         "api-key" to readConfig().apiKey,
+                         "api-secret-key" to readConfig().apiSecretKey))
             .responseObject<Result<CreateRunResponse>>(jacksonDeserializerOf(mapper)).second;
 
         if (resp.statusCode != 200) {
-            throw RuntimeException("Failed to finalize run, contact support@sylkworm.io for help")
+            throw RuntimeException("Failed to finalize run, got code ${resp.statusCode}, contact support@sylkworm.io for help")
         }
     }
 
@@ -107,8 +111,8 @@ class Recorder {
         val result: Result<ImageUploadResponse> =
             Fuel.post(buildUrl("/api/prepare-upload"),
                       listOf("name" to file.name, "hash" to hash,
-                         "api-key" to cred.apiKey,
-                         "api-secret-key" to cred.apiSecretKey))
+                         "api-key" to readConfig().apiKey,
+                         "api-secret-key" to readConfig().apiSecretKey))
                 .responseObject<Result<ImageUploadResponse>>(jacksonDeserializerOf(mapper)).third.get()
 
         val response = result.response!!

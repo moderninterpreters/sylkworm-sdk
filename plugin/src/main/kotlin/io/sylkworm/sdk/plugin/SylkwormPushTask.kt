@@ -2,12 +2,14 @@ package io.sylkworm.sdk.plugin
 
 import com.android.build.gradle.api.TestVariant
 import com.facebook.testing.screenshot.build.PullScreenshotsTask
+import io.sylkworm.sdk.Credential
 import io.sylkworm.sdk.Recorder
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.TaskAction
 
 open class SylkwormPushTask : DefaultTask() {
     private var variant: TestVariant? = null
+    private var cred: Credential? = null
 
     companion object {
         fun taskName(variant: TestVariant) = "pushSylkworm${variant.name.capitalize()}"
@@ -18,14 +20,18 @@ open class SylkwormPushTask : DefaultTask() {
         group = SylkwormPlugin.GROUP
     }
 
-    public fun init(variant: TestVariant) {
+    public fun init(variant: TestVariant, cred: Credential) {
         this.variant = variant;
+        this.cred = cred
+        System.out.println("Got cred as: " + cred.apiKey)
     }
 
     @TaskAction
     fun pushSylkworm() {
         val dir = PullScreenshotsTask.getReportDir(project, variant!!);
-        val recorder = Recorder()
+        val recorder = Recorder(
+//            cred!!
+        )
         recorder.doRecorder(
             "dummy-channel",
             dir.absolutePath
