@@ -1,4 +1,3 @@
 rootProject.name = 'silkwrmsdk'
-include 'lib'
+include 'core'
 include 'plugin'
-

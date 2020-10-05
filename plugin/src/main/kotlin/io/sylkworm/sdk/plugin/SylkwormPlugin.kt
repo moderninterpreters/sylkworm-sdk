@@ -14,14 +14,19 @@ open class SylkwormPluginExtension {
 }
 
 class SylkwormPlugin : Plugin<Project> {
+    companion object {
+        const val GROUP = "Sylkworm"
+    }
+
 
     private lateinit var sylkwormExtensions: SylkwormPluginExtension
 
     override fun apply(project: Project) {
+        System.out.println("apply sylkworm!")
         val extensions = project.extensions
 
         val plugins = project.plugins
-        sylkwormExtensions = extensions.create("screenshots", SylkwormPluginExtension::class.java)
+        sylkwormExtensions = extensions.create("sylkworm", SylkwormPluginExtension::class.java)
 
         val variants = when {
             plugins.hasPlugin("com.android.application") ->
@@ -39,9 +44,11 @@ class SylkwormPlugin : Plugin<Project> {
     private fun generateTasksFor(project: Project, variant: TestVariant) {
         variant.outputs.all {
             if (it is ApkVariantOutput) {
+                val taskName = SylkwormPushTask.taskName(variant)
+                System.out.println("creating task name: " + taskName)
                 project.tasks.create(
-                        SylkwormPushTask.taskName(variant),
-                        SylkwormPushTask::class.java
+                    taskName,
+                    SylkwormPushTask::class.java
                 ).apply {
                     init(variant)
                 }.dependsOn(project.tasks.findByName(PullScreenshotsTask.taskName(variant)))

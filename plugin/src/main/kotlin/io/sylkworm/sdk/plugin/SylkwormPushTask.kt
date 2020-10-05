@@ -6,11 +6,16 @@ import io.sylkworm.sdk.Recorder
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.TaskAction
 
-class SylkwormPushTask : DefaultTask(){
+open class SylkwormPushTask : DefaultTask() {
     private var variant: TestVariant? = null
 
     companion object {
-        fun taskName(variant: TestVariant) = "pushSilkworm${variant.name.capitalize()}"
+        fun taskName(variant: TestVariant) = "pushSylkworm${variant.name.capitalize()}"
+    }
+
+    init {
+        description = "Pull screenshots and push it to Sylkworm"
+        group = SylkwormPlugin.GROUP
     }
 
     public fun init(variant: TestVariant) {

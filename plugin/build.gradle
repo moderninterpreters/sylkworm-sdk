@@ -11,7 +11,6 @@ plugins {
     id 'org.jetbrains.kotlin.jvm'
 }
 
-apply plugin: 'kotlin'
 apply plugin: "java-gradle-plugin"
 apply plugin: 'maven-publish'
 
@@ -23,11 +22,20 @@ repositories {
 }
 
 dependencies {
-    implementation project(":lib")
+    implementation project(":core")
     implementation "org.jetbrains.kotlin:kotlin-stdlib"
     implementation "com.facebook.testing.screenshot:plugin:0.13.0"
     compileOnly plugs.agp
     testCompile group: 'junit', name: 'junit', version: '4.12'
+}
+
+gradlePlugin {
+    plugins {
+        simplePlugin {
+            id = 'io.sylkworm.sdk.plugin'
+            implementationClass = "io.sylkworm.sdk.plugin.SylkwormPlugin"
+        }
+    }
 }
 
 apply from: rootProject.file("release.gradle")
