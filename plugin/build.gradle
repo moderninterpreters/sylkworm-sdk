@@ -23,6 +23,7 @@ repositories {
 }
 
 dependencies {
+    implementation project(":lib")
     implementation "org.jetbrains.kotlin:kotlin-stdlib"
     implementation "com.facebook.testing.screenshot:plugin:0.13.0"
     compileOnly plugs.agp

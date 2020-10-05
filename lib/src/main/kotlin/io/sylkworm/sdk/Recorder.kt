@@ -64,19 +64,23 @@ class Recorder {
         val dir = cli.getOptionValue('d')
         val channel = cli.getOptionValue('c')
 
+        doRecorder(channel, dir)
+
+    }
+
+    public fun doRecorder(channel: String, dir: String) {
         if (channel.isNullOrEmpty())
             throw RuntimeException("empty channel")
 
         if (dir.isNullOrEmpty())
             throw RuntimeException("no directory specified")
 
-        val allImages = getAllImages(dir).map {file ->
+        val allImages = getAllImages(dir).map { file ->
             val response = uploadImage(file)
             ScreenshotRecord(file.name, response.imageId!!)
         }
 
         makeRun(channel, allImages)
-
     }
 
     private fun makeRun(channel: String, allImages: List<ScreenshotRecord>) = run {
