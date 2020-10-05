@@ -11,6 +11,7 @@ import java.io.File
 import java.lang.RuntimeException
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.fasterxml.jackson.module.kotlin.readValue
+import org.slf4j.LoggerFactory
 
 data class ImageUploadResponse(var imageId: String? = "",
                                var uploadUrl:String? = "")
@@ -32,7 +33,6 @@ fun readConfig() = run {
         throw RuntimeException("user.home is not set")
     }
     val home = File(homeStr)
-    System.out.println("home dir: " + home)
     val file = File(home, ".sylkworm")
     if (!file.exists()) {
         throw RuntimeException("Could not find config file at " + file)
@@ -45,6 +45,7 @@ fun readConfig() = run {
 
 class Recorder() {
     var mapper = ObjectMapper()
+    private val logger = LoggerFactory.getLogger(javaClass)
 
     fun getAllImages(dir: String) = run {
         var dirFile = File(dir)
@@ -88,7 +89,7 @@ class Recorder() {
     }
 
     private fun makeRun(channel: String, allImages: List<ScreenshotRecord>) = run {
-        System.out.println("Finalizing the reporter run")
+        logger.info("Finalizing the reporter run")
         val recordsJson = mapper.writeValueAsString(allImages)
         val resp = Fuel.post(buildUrl("/api/run"),
                   listOf("channel" to channel, "screenshot-records" to recordsJson,
@@ -106,7 +107,7 @@ class Recorder() {
     }
 
     private fun uploadImage(file: File) = run {
-        System.out.println("Uploading file: " + file)
+        logger.info("Uploading file: " + file)
         val hash = getDigest(file)
         val result: Result<ImageUploadResponse> =
             Fuel.post(buildUrl("/api/prepare-upload"),
@@ -120,17 +121,16 @@ class Recorder() {
         if (!response.uploadUrl.isNullOrEmpty()) {
             // let's start the upload process
             val arr = file.readBytes()
-            System.out.println("New image, uploading to: " + response.uploadUrl)
+            logger.debug("New image, uploading to: " + response.uploadUrl)
             val code = Fuel.put(response.uploadUrl!!)
                         .body(file)
                         .response().second
 
             if (code.statusCode != 200) {
-                System.out.println(code.toString())
                 throw RuntimeException("Error while uploading image data")
             }
         } else {
-            System.out.println("reusing existing image")
+            logger.debug("reusing existing image")
         }
         response
     }

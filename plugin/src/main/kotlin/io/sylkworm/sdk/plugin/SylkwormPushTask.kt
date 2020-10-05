@@ -5,6 +5,7 @@ import com.facebook.testing.screenshot.build.PullScreenshotsTask
 import io.sylkworm.sdk.Credential
 import io.sylkworm.sdk.Recorder
 import org.gradle.api.DefaultTask
+import org.gradle.api.logging.LogLevel
 import org.gradle.api.tasks.TaskAction
 
 open class SylkwormPushTask : DefaultTask() {
@@ -27,6 +28,7 @@ open class SylkwormPushTask : DefaultTask() {
     fun pushSylkworm() {
         val dir = PullScreenshotsTask.getReportDir(project, variant!!);
         val recorder = Recorder()
+        System.out.println("Uploading images to sylkworm.io (run with -i to see progress, this might be slow on first run)")
         recorder.doRecorder(
             "dummy-channel",
             dir.absolutePath
