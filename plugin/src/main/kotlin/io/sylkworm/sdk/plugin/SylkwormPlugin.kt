@@ -11,8 +11,6 @@ import io.sylkworm.sdk.Credential
 
 
 open class SylkwormPluginExtension {
-    var apiKey: String = "unset"
-    var apiSecretKey: String = "unset"
 }
 
 class SylkwormPlugin : Plugin<Project> {
@@ -44,10 +42,6 @@ class SylkwormPlugin : Plugin<Project> {
     }
 
     private fun generateTasksFor(project: Project, variant: TestVariant) {
-        val cred = Credential(
-            sylkwormExtensions.apiKey,
-            sylkwormExtensions.apiSecretKey
-        )
         variant.outputs.all {
             if (it is ApkVariantOutput) {
                 val taskName = SylkwormPushTask.taskName(variant)
@@ -56,7 +50,7 @@ class SylkwormPlugin : Plugin<Project> {
                     taskName,
                     SylkwormPushTask::class.java
                 ).apply {
-                    init(variant, cred)
+                    init(variant)
                 }.dependsOn(project.tasks.findByName(PullScreenshotsTask.taskName(variant)))
             }
         }

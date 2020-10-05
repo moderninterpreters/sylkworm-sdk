@@ -9,7 +9,6 @@ import org.gradle.api.tasks.TaskAction
 
 open class SylkwormPushTask : DefaultTask() {
     private var variant: TestVariant? = null
-    private var cred: Credential? = null
 
     companion object {
         fun taskName(variant: TestVariant) = "pushSylkworm${variant.name.capitalize()}"
@@ -20,18 +19,14 @@ open class SylkwormPushTask : DefaultTask() {
         group = SylkwormPlugin.GROUP
     }
 
-    public fun init(variant: TestVariant, cred: Credential) {
+    public fun init(variant: TestVariant) {
         this.variant = variant;
-        this.cred = cred
-        System.out.println("Got cred as: " + cred.apiKey)
     }
 
     @TaskAction
     fun pushSylkworm() {
         val dir = PullScreenshotsTask.getReportDir(project, variant!!);
-        val recorder = Recorder(
-//            cred!!
-        )
+        val recorder = Recorder()
         recorder.doRecorder(
             "dummy-channel",
             dir.absolutePath
