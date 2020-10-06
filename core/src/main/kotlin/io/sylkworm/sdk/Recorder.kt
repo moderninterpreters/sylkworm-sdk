@@ -186,7 +186,7 @@ class Recorder() {
     }
 
     fun buildUrl(url: String) = run {
-        "https://sylkworm.io" + url
+        "https://api.sylkworm.io" + url
     }
 
     private fun uploadImage(fileName: String, data: ByteArray) = run {
