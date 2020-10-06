@@ -112,15 +112,11 @@ class Recorder() {
 
         while (sr.isStartElement) {
 
-            logger.info("current name is: " + sr.name)
-
             if (sr.name.localPart.equals("screenshot")) {
-                logger.info("Got screenshot tag")
                 screenshots.add(mapper.readValue<Screenshot>(sr, Screenshot::class.java))
             }
 
             sr.next() // <screenshot> or </screenshots>
-            logger.info("we're now at: " + sr.name)
         }
 
         screenshots.toList()
@@ -155,8 +151,17 @@ class Recorder() {
             }.sum()
 
             val outputImg = BufferedImage(width, height, imgs[0][0].type)
-            outputImg.raster.setRect(0, 0, imgs[0][0].raster)
-            
+
+            var h = 0;
+            imgs.map {
+                var w = 0;
+                it.map {
+                    outputImg.raster.setRect(w, h, it.raster)
+                    w += it.width
+                }
+                h += it[0].height
+            }
+
             val data = ByteArrayOutputStream()
             ImageIO.write(outputImg, "png", data)
             val response = uploadImage(screenshot.name + ".png", data.toByteArray())
@@ -199,7 +204,7 @@ class Recorder() {
         if (!response.uploadUrl.isNullOrEmpty()) {
             // let's start the upload process
 
-            logger.debug("New image, uploading to: " + response.uploadUrl)
+            logger.info("New image, never seen before. Uploading!")
             val code = Fuel.put(response.uploadUrl!!)
                         .body(data)
                         .response().second
