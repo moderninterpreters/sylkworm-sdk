@@ -100,17 +100,22 @@ class Recorder() {
         val sr = f.createXMLStreamReader(file.inputStream())
 
         sr.next() // <screenshots>
+        sr.next() // <screenshot>
+
         val screenshots = mutableListOf<Screenshot>()
         logger.debug("Current element has name: " + sr.name)
 
         while (sr.isStartElement) {
-            sr.next()
-            logger.debug("current name is: " + sr.name)
+
+            logger.info("current name is: " + sr.name)
 
             if (sr.name.localPart.equals("screenshot")) {
                 logger.info("Got screenshot tag")
                 screenshots.add(mapper.readValue<Screenshot>(sr, Screenshot::class.java))
             }
+
+            sr.next() // <screenshot> or </screenshots>
+            logger.info("we're now at: " + sr.name)
         }
 
         screenshots.toList()
@@ -126,7 +131,10 @@ class Recorder() {
         val metadata = File(dir, "metadata.xml")
         val screenshots = readMetadata(metadata)
 
-        val allImages = getAllImages(dir).map { file ->
+        logger.info("Got ${screenshots.size} screenshots to upload")
+        val allImages = screenshots.map { screenshot ->
+            // todo: get all the other tiles
+            val file = File(dir, screenshot.name + ".png")
             val response = uploadImage(file)
             ScreenshotRecord(file.name, response.imageId!!)
         }
