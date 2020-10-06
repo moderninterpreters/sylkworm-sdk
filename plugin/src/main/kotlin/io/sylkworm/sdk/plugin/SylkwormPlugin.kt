@@ -7,10 +7,9 @@ import com.android.build.gradle.LibraryExtension
 import com.android.build.gradle.api.ApkVariantOutput
 import com.android.build.gradle.api.TestVariant
 import com.facebook.testing.screenshot.build.PullScreenshotsTask
-import io.sylkworm.sdk.Credential
 
 
-open class SylkwormPluginExtension {
+open class SylkwormPluginExtension(var channelName: String? = null){
 }
 
 class SylkwormPlugin : Plugin<Project> {
@@ -50,7 +49,7 @@ class SylkwormPlugin : Plugin<Project> {
                     taskName,
                     SylkwormPushTask::class.java
                 ).apply {
-                    init(variant)
+                    init(variant, sylkwormExtensions)
                 }.dependsOn(project.tasks.findByName(PullScreenshotsTask.taskName(variant)))
             }
         }
