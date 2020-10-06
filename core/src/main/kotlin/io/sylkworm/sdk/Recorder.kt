@@ -147,9 +147,18 @@ class Recorder() {
                     ImageIO.read(file)
                 }
             }
+            val width = imgs[0].map{
+                it.width
+            }.sum()
+            val height = imgs.map {
+                it[0].height
+            }.sum()
 
+            val outputImg = BufferedImage(width, height, imgs[0][0].type)
+            outputImg.raster.setRect(0, 0, imgs[0][0].raster)
+            
             val data = ByteArrayOutputStream()
-            ImageIO.write(imgs[0][0], "png", data)
+            ImageIO.write(outputImg, "png", data)
             val response = uploadImage(screenshot.name + ".png", data.toByteArray())
             ScreenshotRecord(screenshot.name!!, response.imageId!!)
         }
