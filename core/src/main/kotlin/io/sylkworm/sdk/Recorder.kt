@@ -1,6 +1,8 @@
 package io.sylkworm.sdk
 
+import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.dataformat.xml.XmlMapper
 import com.github.kittinunf.fuel.Fuel
 import com.github.kittinunf.fuel.jackson.jacksonDeserializerOf
 import com.google.common.hash.Hashing
@@ -11,7 +13,11 @@ import java.io.File
 import java.lang.RuntimeException
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.fasterxml.jackson.module.kotlin.readValue
+import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import java.io.FileInputStream
+import java.util.Collections.emptyList
+import javax.xml.stream.XMLInputFactory
 
 data class ImageUploadResponse(var imageId: String? = "",
                                var uploadUrl:String? = "")
@@ -41,6 +47,20 @@ fun readConfig() = run {
     //throw RuntimeException("got json: " + json)
     mapper.readValue<Credential>(json)
 }
+
+data class Screenshot(
+        var description: String? = "",
+        var name: String? = "",
+        var test_class: String?="",
+        var test_name: String? = "",
+        var view_hierarchy: String? ="",
+        var tile_width: Int? = null,
+        var tile_height: Int? = null) {
+}
+class Screenshots() {
+
+}
+
 
 
 class Recorder() {
@@ -73,12 +93,38 @@ class Recorder() {
 
     }
 
+    fun readMetadata(file: File) = run {
+        val mapper = XmlMapper()
+        mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+        val f = XMLInputFactory.newFactory()
+        val sr = f.createXMLStreamReader(file.inputStream())
+
+        sr.next() // <screenshots>
+        val screenshots = mutableListOf<Screenshot>()
+        logger.debug("Current element has name: " + sr.name)
+
+        while (sr.isStartElement) {
+            sr.next()
+            logger.debug("current name is: " + sr.name)
+
+            if (sr.name.localPart.equals("screenshot")) {
+                logger.info("Got screenshot tag")
+                screenshots.add(mapper.readValue<Screenshot>(sr, Screenshot::class.java))
+            }
+        }
+
+        screenshots.toList()
+    }
+
     public fun doRecorder(channel: String, dir: String) {
         if (channel.isNullOrEmpty())
             throw RuntimeException("empty channel")
 
         if (dir.isNullOrEmpty())
             throw RuntimeException("no directory specified")
+
+        val metadata = File(dir, "metadata.xml")
+        val screenshots = readMetadata(metadata)
 
         val allImages = getAllImages(dir).map { file ->
             val response = uploadImage(file)
