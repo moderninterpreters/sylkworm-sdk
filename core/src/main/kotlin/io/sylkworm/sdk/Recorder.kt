@@ -13,10 +13,15 @@ import java.io.File
 import java.lang.RuntimeException
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.fasterxml.jackson.module.kotlin.readValue
+import com.google.common.io.ByteSource
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import java.awt.image.BufferedImage
+import java.awt.image.Raster
+import java.io.ByteArrayOutputStream
 import java.io.FileInputStream
 import java.util.Collections.emptyList
+import javax.imageio.ImageIO
 import javax.xml.stream.XMLInputFactory
 
 data class ImageUploadResponse(var imageId: String? = "",
@@ -73,8 +78,8 @@ class Recorder() {
                 .filter { x -> x.absolutePath.endsWith(".png") }
     }
 
-    fun getDigest(file: File) = run {
-        Files.asByteSource(file).hash(Hashing.md5()).toString()
+    fun getDigest(data: ByteArray) = run {
+        ByteSource.wrap(data).hash(Hashing.md5()).toString()
     }
 
     private fun run(args: Array<String>) {
@@ -134,9 +139,19 @@ class Recorder() {
         logger.info("Got ${screenshots.size} screenshots to upload")
         val allImages = screenshots.map { screenshot ->
             // todo: get all the other tiles
-            val file = File(dir, screenshot.name + ".png")
-            val response = uploadImage(file)
-            ScreenshotRecord(file.name, response.imageId!!)
+            val imgs = Array<Array<BufferedImage>>(screenshot.tile_height!!) { h->
+                Array<BufferedImage>(screenshot.tile_width!!) { w->
+                    val file = (if (h == 0 &&  w == 0) File(dir, screenshot.name + ".png")
+                                else File(dir, "${screenshot.name}_${w}_${h}.png"))
+
+                    ImageIO.read(file)
+                }
+            }
+
+            val data = ByteArrayOutputStream()
+            ImageIO.write(imgs[0][0], "png", data)
+            val response = uploadImage(screenshot.name + ".png", data.toByteArray())
+            ScreenshotRecord(screenshot.name!!, response.imageId!!)
         }
 
         makeRun(channel, allImages)
@@ -160,12 +175,12 @@ class Recorder() {
         "https://sylkworm.io" + url
     }
 
-    private fun uploadImage(file: File) = run {
-        logger.info("Uploading file: " + file)
-        val hash = getDigest(file)
+    private fun uploadImage(fileName: String, data: ByteArray) = run {
+        logger.info("Uploading file: " + fileName)
+        val hash = getDigest(data)
         val result: Result<ImageUploadResponse> =
             Fuel.post(buildUrl("/api/prepare-upload"),
-                      listOf("name" to file.name, "hash" to hash,
+                      listOf("name" to fileName, "hash" to hash,
                          "api-key" to readConfig().apiKey,
                          "api-secret-key" to readConfig().apiSecretKey))
                 .responseObject<Result<ImageUploadResponse>>(jacksonDeserializerOf(mapper)).third.get()
@@ -174,10 +189,10 @@ class Recorder() {
 
         if (!response.uploadUrl.isNullOrEmpty()) {
             // let's start the upload process
-            val arr = file.readBytes()
+
             logger.debug("New image, uploading to: " + response.uploadUrl)
             val code = Fuel.put(response.uploadUrl!!)
-                        .body(file)
+                        .body(data)
                         .response().second
 
             if (code.statusCode != 200) {
