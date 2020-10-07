@@ -44,7 +44,7 @@ fun readConfig() = run {
         throw RuntimeException("user.home is not set")
     }
     val home = File(homeStr)
-    val file = File(home, ".sylkworm")
+    val file = File(home, ".screenshotbot")
     if (!file.exists()) {
         throw RuntimeException("Could not find config file at " + file)
     }

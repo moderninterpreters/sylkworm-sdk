@@ -40,7 +40,7 @@ gradlePlugin {
     plugins {
         simplePlugin {
             id = 'io.screenshotbot.plugin'
-            implementationClass = "io.screenshotbot.plugin.SylkwormPlugin"
+            implementationClass = "io.screenshotbot.plugin.ScreenshotbotPlugin"
         }
     }
 }

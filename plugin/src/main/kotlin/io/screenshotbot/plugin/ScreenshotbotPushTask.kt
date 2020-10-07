@@ -7,7 +7,7 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.TaskAction
 
 open class ScreenshotbotPushTask : DefaultTask() {
-    private var sylkwormExtensions: SylkwormPluginExtension? = null
+    private var sylkwormExtensions: ScreenshotbotExtensions? = null
     private var variant: TestVariant? = null
 
     companion object {
@@ -16,10 +16,10 @@ open class ScreenshotbotPushTask : DefaultTask() {
 
     init {
         description = "Pull screenshots and push it to Sylkworm"
-        group = SylkwormPlugin.GROUP
+        group = ScreenshotbotPlugin.GROUP
     }
 
-    public fun init(variant: TestVariant, sylkwormExtensions: SylkwormPluginExtension) {
+    public fun init(variant: TestVariant, sylkwormExtensions: ScreenshotbotExtensions) {
         this.variant = variant;
         this.sylkwormExtensions = sylkwormExtensions
     }

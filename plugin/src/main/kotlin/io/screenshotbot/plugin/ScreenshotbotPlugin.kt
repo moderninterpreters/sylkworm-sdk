@@ -9,23 +9,23 @@ import com.android.build.gradle.api.TestVariant
 import com.facebook.testing.screenshot.build.PullScreenshotsTask
 
 
-open class SylkwormPluginExtension(var channelName: String? = null){
+open class ScreenshotbotExtensions(var channelName: String? = null){
 }
 
-class SylkwormPlugin : Plugin<Project> {
+class ScreenshotbotPlugin : Plugin<Project> {
     companion object {
-        const val GROUP = "Sylkworm"
+        const val GROUP = "Screenshotbot"
     }
 
 
-    private lateinit var sylkwormExtensions: SylkwormPluginExtension
+    private lateinit var screenshotbotExtensions: ScreenshotbotExtensions
 
     override fun apply(project: Project) {
         System.out.println("apply sylkworm!")
         val extensions = project.extensions
 
         val plugins = project.plugins
-        sylkwormExtensions = extensions.create("sylkworm", SylkwormPluginExtension::class.java)
+        screenshotbotExtensions = extensions.create("screenshotbot", ScreenshotbotExtensions::class.java)
 
         val variants = when {
             plugins.hasPlugin("com.android.application") ->
@@ -49,7 +49,7 @@ class SylkwormPlugin : Plugin<Project> {
                     taskName,
                     ScreenshotbotPushTask::class.java
                 ).apply {
-                    init(variant, sylkwormExtensions)
+                    init(variant, screenshotbotExtensions)
                 }.dependsOn(project.tasks.findByName(PullScreenshotsTask.taskName(variant)))
             }
         }
