@@ -43,11 +43,11 @@ class SylkwormPlugin : Plugin<Project> {
     private fun generateTasksFor(project: Project, variant: TestVariant) {
         variant.outputs.all {
             if (it is ApkVariantOutput) {
-                val taskName = SylkwormPushTask.taskName(variant)
+                val taskName = ScreenshotbotPushTask.taskName(variant)
                 System.out.println("creating task name: " + taskName)
                 project.tasks.create(
                     taskName,
-                    SylkwormPushTask::class.java
+                    ScreenshotbotPushTask::class.java
                 ).apply {
                     init(variant, sylkwormExtensions)
                 }.dependsOn(project.tasks.findByName(PullScreenshotsTask.taskName(variant)))

@@ -6,7 +6,7 @@ import io.screenshotbot.sdk.Recorder
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.TaskAction
 
-open class SylkwormPushTask : DefaultTask() {
+open class ScreenshotbotPushTask : DefaultTask() {
     private var sylkwormExtensions: SylkwormPluginExtension? = null
     private var variant: TestVariant? = null
 
