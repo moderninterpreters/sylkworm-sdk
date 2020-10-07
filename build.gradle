@@ -27,7 +27,7 @@ allprojects {
 }
 
 
-group 'io.sylkworm.sdk'
+group 'io.screenshotbot'
 version '0.1.0'
 
 repositories {

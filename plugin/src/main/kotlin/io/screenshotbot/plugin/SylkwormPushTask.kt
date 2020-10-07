@@ -1,8 +1,8 @@
-package io.sylkworm.sdk.plugin
+package io.screenshotbot.plugin
 
 import com.android.build.gradle.api.TestVariant
 import com.facebook.testing.screenshot.build.PullScreenshotsTask
-import io.sylkworm.sdk.Recorder
+import io.screenshotbot.sdk.Recorder
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.TaskAction
 

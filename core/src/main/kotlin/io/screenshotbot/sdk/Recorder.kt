@@ -1,4 +1,4 @@
-package io.sylkworm.sdk
+package io.screenshotbot.sdk
 
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -186,7 +186,7 @@ class Recorder() {
     }
 
     fun buildUrl(url: String) = run {
-        "https://api.sylkworm.io" + url
+        "https://api.screenshotbot.io" + url
     }
 
     private fun uploadImage(fileName: String, data: ByteArray) = run {

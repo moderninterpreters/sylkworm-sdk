@@ -16,7 +16,7 @@ apply plugin: "java-gradle-plugin"
 apply plugin: 'maven-publish'
 
 
-group 'io.sylkworm.sdk'
+group 'io.screenshotbot.sdk'
 version '0.1.0'
 
 repositories {
@@ -39,8 +39,8 @@ signing {
 gradlePlugin {
     plugins {
         simplePlugin {
-            id = 'io.sylkworm.sdk.plugin'
-            implementationClass = "io.sylkworm.sdk.plugin.SylkwormPlugin"
+            id = 'io.screenshotbot.plugin'
+            implementationClass = "io.screenshotbot.plugin.SylkwormPlugin"
         }
     }
 }
