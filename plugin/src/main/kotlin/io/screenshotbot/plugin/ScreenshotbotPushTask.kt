@@ -12,7 +12,7 @@ import java.io.File
 data class GitStatus(val commit:String, val clean: Boolean)
 
 open class ScreenshotbotPushTask : DefaultTask() {
-    private var sylkwormExtensions: ScreenshotbotExtensions? = null
+    private var extensions: ScreenshotbotExtensions? = null
     private var variant: TestVariant? = null
 
     companion object {
@@ -26,20 +26,20 @@ open class ScreenshotbotPushTask : DefaultTask() {
 
     public fun init(variant: TestVariant, sylkwormExtensions: ScreenshotbotExtensions) {
         this.variant = variant;
-        this.sylkwormExtensions = sylkwormExtensions
+        this.extensions = sylkwormExtensions
     }
 
     @TaskAction
     fun pushSylkworm() {
         val dir = PullScreenshotsTask.getReportDir(project, variant!!);
         val recorder = Recorder()
-        recorder.setGithubRepo(sylkwormExtensions?.githubRepo)
+        recorder.setGithubRepo(extensions?.githubRepo)
         val status = getCommit()
         recorder.commit = status?.commit
         recorder.clean = status?.clean
 
 
-        val channelName =  sylkwormExtensions?.channelName?:("root-project" + project.path)
+        val channelName =  extensions?.channelName?:("root-project" + project.path)
 
         System.out.println("Uploading images to sylkworm.io (run with -i to see progress, this might be slow on first run)")
         recorder.doRecorder(
