@@ -69,6 +69,7 @@ class Screenshots() {
 
 
 class Recorder() {
+    private var githubRepo: String? = ""
     var mapper = ObjectMapper()
     private val logger = LoggerFactory.getLogger(javaClass)
 
@@ -176,6 +177,7 @@ class Recorder() {
         val recordsJson = mapper.writeValueAsString(allImages)
         val resp = Fuel.post(buildUrl("/api/run"),
                   listOf("channel" to channel, "screenshot-records" to recordsJson,
+                         "github-repo" to githubRepo,
                          "api-key" to readConfig().apiKey,
                          "api-secret-key" to readConfig().apiSecretKey))
             .responseObject<Result<CreateRunResponse>>(jacksonDeserializerOf(mapper)).second;
@@ -216,6 +218,10 @@ class Recorder() {
             logger.debug("reusing existing image")
         }
         response
+    }
+
+    fun setGithubRepo(githubRepo: String?) {
+        this.githubRepo = githubRepo
     }
 
     companion object {

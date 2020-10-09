@@ -11,7 +11,7 @@ open class ScreenshotbotPushTask : DefaultTask() {
     private var variant: TestVariant? = null
 
     companion object {
-        fun taskName(variant: TestVariant) = "pushSylkworm${variant.name.capitalize()}"
+        fun taskName(variant: TestVariant) = "${variant.name}Screenshotbot"
     }
 
     init {
@@ -28,6 +28,7 @@ open class ScreenshotbotPushTask : DefaultTask() {
     fun pushSylkworm() {
         val dir = PullScreenshotsTask.getReportDir(project, variant!!);
         val recorder = Recorder()
+        recorder.setGithubRepo(sylkwormExtensions?.githubRepo)
         val channelName =  sylkwormExtensions?.channelName?:("root-project" + project.path)
 
         System.out.println("Uploading images to sylkworm.io (run with -i to see progress, this might be slow on first run)")

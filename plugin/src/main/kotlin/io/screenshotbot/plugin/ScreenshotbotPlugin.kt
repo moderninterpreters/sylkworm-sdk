@@ -9,7 +9,7 @@ import com.android.build.gradle.api.TestVariant
 import com.facebook.testing.screenshot.build.PullScreenshotsTask
 
 
-open class ScreenshotbotExtensions(var channelName: String? = null){
+open class ScreenshotbotExtensions(var channelName: String? = null, var githubRepo: String? = null){
 }
 
 class ScreenshotbotPlugin : Plugin<Project> {
@@ -21,7 +21,6 @@ class ScreenshotbotPlugin : Plugin<Project> {
     private lateinit var screenshotbotExtensions: ScreenshotbotExtensions
 
     override fun apply(project: Project) {
-        System.out.println("apply sylkworm!")
         val extensions = project.extensions
 
         val plugins = project.plugins
