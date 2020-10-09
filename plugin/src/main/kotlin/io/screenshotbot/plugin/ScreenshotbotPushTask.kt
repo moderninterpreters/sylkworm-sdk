@@ -9,6 +9,8 @@ import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.lib.Constants
 import java.io.File
 
+data class GitStatus(val commit:String, val clean: Boolean)
+
 open class ScreenshotbotPushTask : DefaultTask() {
     private var sylkwormExtensions: ScreenshotbotExtensions? = null
     private var variant: TestVariant? = null
@@ -32,7 +34,10 @@ open class ScreenshotbotPushTask : DefaultTask() {
         val dir = PullScreenshotsTask.getReportDir(project, variant!!);
         val recorder = Recorder()
         recorder.setGithubRepo(sylkwormExtensions?.githubRepo)
-        recorder.commit = getCommit()
+        val status = getCommit()
+        recorder.commit = status?.commit
+        recorder.clean = status?.clean
+
 
         val channelName =  sylkwormExtensions?.channelName?:("root-project" + project.path)
 
@@ -43,7 +48,7 @@ open class ScreenshotbotPushTask : DefaultTask() {
         )
     }
 
-    private fun getCommit(): String? {
+    private fun getCommit(): GitStatus? {
         val gitDir = getGitDir(project.projectDir)
         if (gitDir == null) {
             return null
@@ -51,7 +56,8 @@ open class ScreenshotbotPushTask : DefaultTask() {
         val git = Git.open(gitDir)
         val commit = git.repository.resolve(Constants.HEAD)
 
-        return commit?.name
+        val clean = git.status().call().isClean();
+        return GitStatus(commit.name, clean)
     }
 
     private fun getGitDir(projectDir: File): File? {

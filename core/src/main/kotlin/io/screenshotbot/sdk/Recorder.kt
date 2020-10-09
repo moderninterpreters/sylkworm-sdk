@@ -69,6 +69,7 @@ class Screenshots() {
 
 
 class Recorder() {
+    var clean: Boolean? = true
     var commit: String? = null
     private var githubRepo: String? = ""
     var mapper = ObjectMapper()
@@ -180,6 +181,7 @@ class Recorder() {
                   listOf("channel" to channel, "screenshot-records" to recordsJson,
                          "github-repo" to githubRepo,
                          "commit" to commit,
+                         "is-clean" to clean.toString(),
                          "api-key" to readConfig().apiKey,
                          "api-secret-key" to readConfig().apiSecretKey))
             .responseObject<Result<CreateRunResponse>>(jacksonDeserializerOf(mapper)).second;
