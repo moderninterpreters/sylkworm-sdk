@@ -69,6 +69,7 @@ class Screenshots() {
 
 
 class Recorder() {
+    var commit: String? = null
     private var githubRepo: String? = ""
     var mapper = ObjectMapper()
     private val logger = LoggerFactory.getLogger(javaClass)
@@ -178,6 +179,7 @@ class Recorder() {
         val resp = Fuel.post(buildUrl("/api/run"),
                   listOf("channel" to channel, "screenshot-records" to recordsJson,
                          "github-repo" to githubRepo,
+                         "commit" to commit,
                          "api-key" to readConfig().apiKey,
                          "api-secret-key" to readConfig().apiSecretKey))
             .responseObject<Result<CreateRunResponse>>(jacksonDeserializerOf(mapper)).second;

@@ -27,6 +27,8 @@ dependencies {
     implementation project(":core")
     implementation deps.kotlinStdlib
     implementation "com.facebook.testing.screenshot:plugin:0.13.0"
+    compile group: 'org.eclipse.jgit', name: 'org.eclipse.jgit', version: '5.9.0.202009080501-r'
+
     compileOnly plugs.agp
     testCompile group: 'junit', name: 'junit', version: '4.12'
 }

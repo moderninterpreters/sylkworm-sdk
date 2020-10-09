@@ -5,6 +5,9 @@ import com.facebook.testing.screenshot.build.PullScreenshotsTask
 import io.screenshotbot.sdk.Recorder
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.TaskAction
+import org.eclipse.jgit.api.Git
+import org.eclipse.jgit.lib.Constants
+import java.io.File
 
 open class ScreenshotbotPushTask : DefaultTask() {
     private var sylkwormExtensions: ScreenshotbotExtensions? = null
@@ -29,6 +32,8 @@ open class ScreenshotbotPushTask : DefaultTask() {
         val dir = PullScreenshotsTask.getReportDir(project, variant!!);
         val recorder = Recorder()
         recorder.setGithubRepo(sylkwormExtensions?.githubRepo)
+        recorder.commit = getCommit()
+
         val channelName =  sylkwormExtensions?.channelName?:("root-project" + project.path)
 
         System.out.println("Uploading images to sylkworm.io (run with -i to see progress, this might be slow on first run)")
@@ -37,4 +42,29 @@ open class ScreenshotbotPushTask : DefaultTask() {
             dir.absolutePath
         )
     }
+
+    private fun getCommit(): String? {
+        val gitDir = getGitDir(project.projectDir)
+        if (gitDir == null) {
+            return null
+        }
+        val git = Git.open(gitDir)
+        val commit = git.repository.resolve(Constants.HEAD)
+
+        return commit?.name
+    }
+
+    private fun getGitDir(projectDir: File): File? {
+        val gitDir = File(projectDir, ".git")
+        if (gitDir.exists()) {
+            return gitDir
+        }
+
+        val parent = projectDir.parentFile
+        if (parent.equals(gitDir)) {
+            return null
+        }
+        return getGitDir(parent)
+    }
+
 }
