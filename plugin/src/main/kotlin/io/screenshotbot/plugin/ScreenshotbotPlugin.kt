@@ -43,15 +43,22 @@ class ScreenshotbotPlugin : Plugin<Project> {
         variant.outputs.all {
             if (it is ApkVariantOutput) {
                 val taskName = ScreenshotbotPushTask.taskName(variant)
-                System.out.println("creating task name: " + taskName)
                 project.tasks.create(
                     taskName,
                     ScreenshotbotPushTask::class.java
                 ).apply {
-                    init(variant, screenshotbotExtensions)
+                    init(variant, screenshotbotExtensions, false)
+                }.dependsOn(project.tasks.findByName(PullScreenshotsTask.taskName(variant)))
+
+                project.tasks.create(
+                    ScreenshotbotPushTask.publishTaskName(variant),
+                    ScreenshotbotPushTask::class.java
+                ).apply {
+                    init(variant, screenshotbotExtensions, true)
                 }.dependsOn(project.tasks.findByName(PullScreenshotsTask.taskName(variant)))
             }
         }
+
     }
 
 }

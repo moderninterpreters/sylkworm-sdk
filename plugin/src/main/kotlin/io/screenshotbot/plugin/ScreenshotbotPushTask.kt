@@ -14,9 +14,11 @@ data class GitStatus(val commit:String, val clean: Boolean)
 open class ScreenshotbotPushTask : DefaultTask() {
     private var extensions: ScreenshotbotExtensions? = null
     private var variant: TestVariant? = null
+    private var production: Boolean = false
 
     companion object {
         fun taskName(variant: TestVariant) = "${variant.name}Screenshotbot"
+        fun publishTaskName(variant: TestVariant) = "publish${variant.name.capitalize()}Screenshotbot"
     }
 
     init {
@@ -24,9 +26,10 @@ open class ScreenshotbotPushTask : DefaultTask() {
         group = ScreenshotbotPlugin.GROUP
     }
 
-    public fun init(variant: TestVariant, sylkwormExtensions: ScreenshotbotExtensions) {
+    public fun init(variant: TestVariant, sylkwormExtensions: ScreenshotbotExtensions, production: Boolean) {
         this.variant = variant;
         this.extensions = sylkwormExtensions
+        this.production = production
     }
 
     @TaskAction
@@ -37,7 +40,7 @@ open class ScreenshotbotPushTask : DefaultTask() {
         val status = getCommit()
         recorder.commit = status?.commit
         recorder.clean = status?.clean
-
+        recorder.production = production
 
         val channelName =  extensions?.channelName?:("root-project" + project.path)
 

@@ -71,6 +71,7 @@ class Screenshots() {
 class Recorder() {
     var clean: Boolean? = true
     var commit: String? = null
+    var production: Boolean = false
     private var githubRepo: String? = ""
     var mapper = ObjectMapper()
     private val logger = LoggerFactory.getLogger(javaClass)
@@ -81,6 +82,7 @@ class Recorder() {
                 .filter { x -> x.absolutePath.endsWith(".png") }
     }
 
+    @Suppress("deprecation")
     fun getDigest(data: ByteArray) = run {
         ByteSource.wrap(data).hash(Hashing.md5()).toString()
     }
@@ -182,6 +184,7 @@ class Recorder() {
                          "github-repo" to githubRepo,
                          "commit" to commit,
                          "is-clean" to clean.toString(),
+                         "is-trunk" to production.toString(),
                          "api-key" to readConfig().apiKey,
                          "api-secret-key" to readConfig().apiSecretKey))
             .responseObject<Result<CreateRunResponse>>(jacksonDeserializerOf(mapper)).second;
