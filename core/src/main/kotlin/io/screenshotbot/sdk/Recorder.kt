@@ -69,6 +69,7 @@ class Screenshots() {
 
 
 class Recorder() {
+    var branch: String? = null
     var clean: Boolean? = true
     var commit: String? = null
     var production: Boolean = false
@@ -184,6 +185,7 @@ class Recorder() {
                          "github-repo" to githubRepo,
                          "commit" to commit,
                          "is-clean" to clean.toString(),
+                         "branch" to branch,
                          "is-trunk" to production.toString(),
                          "api-key" to readConfig().apiKey,
                          "api-secret-key" to readConfig().apiSecretKey))

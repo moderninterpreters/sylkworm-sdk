@@ -41,6 +41,7 @@ open class ScreenshotbotPushTask : DefaultTask() {
         recorder.commit = status?.commit
         recorder.clean = status?.clean
         recorder.production = production
+        recorder.branch = extensions?.branch
 
         val channelName =  extensions?.channelName?:("root-project" + project.path)
 

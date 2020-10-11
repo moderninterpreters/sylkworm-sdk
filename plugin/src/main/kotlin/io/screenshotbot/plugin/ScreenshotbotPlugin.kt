@@ -9,7 +9,12 @@ import com.android.build.gradle.api.TestVariant
 import com.facebook.testing.screenshot.build.PullScreenshotsTask
 
 
-open class ScreenshotbotExtensions(var channelName: String? = null, var githubRepo: String? = null){
+open class ScreenshotbotExtensions(
+        var channelName: String? = null,
+        var githubRepo: String? = null,
+        /** for published branches, this will verify that the commit is available under the branch before
+         * promoting it */
+        var branch: String? = null){
 }
 
 class ScreenshotbotPlugin : Plugin<Project> {
