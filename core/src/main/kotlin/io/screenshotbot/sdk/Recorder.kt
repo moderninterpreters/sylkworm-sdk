@@ -119,16 +119,18 @@ class Recorder() {
     private fun run(args: Array<String>) {
         mapper.registerModule(KotlinModule())
         val options = Options()
-        options.addOption("d", "dir", true, "Directory with screenshots")
+        options.addOption("d", "dir", true, "Directory with screenshots, can also be a bundle.zip")
         options.addOption("c", "channel", true, "Channel name under which the screenshots should go under")
+        options.addOption("m", "metadata", true, "Metadata file, defaults to dir/metadata.xml")
+
 
         val parser = DefaultParser()
         val cli = parser.parse(options, args)
 
         val dir = cli.getOptionValue('d')
         val channel = cli.getOptionValue('c')
-
-        doRecorder(channel, dir)
+        val metadata = File(cli.getOptionValue('m')) ?: File(dir, "metadata.xml")
+        doRecorder(channel, dir, metadata)
 
     }
 
