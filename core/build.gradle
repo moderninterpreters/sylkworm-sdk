@@ -28,6 +28,7 @@ dependencies {
     implementation deps.kotlinStdlib
     //implementation "org.jetbrains.kotlin:kotlin-reflect"
     compile group: 'commons-cli', name: 'commons-cli', version: '1.4'
+    compile group: 'org.eclipse.jgit', name: 'org.eclipse.jgit', version: '5.9.0.202009080501-r'
 
     compile group: 'org.slf4j', name: 'slf4j-api', version: '1.7.30'
     implementation 'com.github.kittinunf.fuel:fuel:2.2.3'

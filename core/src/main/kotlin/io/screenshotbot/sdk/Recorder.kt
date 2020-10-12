@@ -14,6 +14,8 @@ import java.lang.RuntimeException
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.google.common.io.ByteSource
+import org.eclipse.jgit.api.Git
+import org.eclipse.jgit.lib.Constants
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.awt.image.BufferedImage
@@ -95,6 +97,38 @@ class ZipImageProvider(val file: File) : ImageProvider {
 
 }
 
+
+data class GitStatus(val commit:String, val clean: Boolean)
+
+class RepoProcessor {
+    companion object {
+
+        public fun getCommit(projectDir: File): GitStatus? {
+            val gitDir = getGitDir(projectDir)
+            if (gitDir == null) {
+                return null
+            }
+            val git = Git.open(gitDir)
+            val commit = git.repository.resolve(Constants.HEAD)
+
+            val clean = git.status().call().isClean();
+            return GitStatus(commit.name, clean)
+        }
+
+        private fun getGitDir(projectDir: File): File? {
+            val gitDir = File(projectDir, ".git")
+            if (gitDir.exists()) {
+                return gitDir
+            }
+
+            val parent = projectDir.parentFile
+            if (parent.equals(gitDir)) {
+                return null
+            }
+            return getGitDir(parent)
+        }
+    }
+}
 
 class Recorder() {
     var branch: String? = null
