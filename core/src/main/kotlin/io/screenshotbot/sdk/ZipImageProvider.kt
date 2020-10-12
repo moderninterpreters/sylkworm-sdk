@@ -21,6 +21,8 @@ import java.awt.image.Raster
 import java.io.ByteArrayOutputStream
 import java.io.FileInputStream
 import java.util.Collections.emptyList
+import java.util.zip.ZipFile
+import java.util.zip.ZipInputStream
 import javax.imageio.ImageIO
 import javax.xml.stream.XMLInputFactory
 
@@ -66,6 +68,32 @@ class Screenshots() {
 
 }
 
+interface ImageProvider {
+    fun getImage(name: String): BufferedImage
+    fun close()
+}
+
+class DirectoryImageProvider(val dir: File) : ImageProvider {
+    override fun getImage(name: String): BufferedImage = run {
+        ImageIO.read(File(dir, name))
+    }
+
+    override fun close() {
+    }
+}
+
+class ZipImageProvider(val file: File) : ImageProvider {
+    val zipFile = ZipFile(file)
+    override fun getImage(name: String): BufferedImage = run {
+        val entry = zipFile.getEntry(name)
+        ImageIO.read(zipFile.getInputStream(entry))
+    }
+
+    override fun close() {
+        zipFile.close()
+    }
+
+}
 
 
 class Recorder() {
@@ -128,25 +156,28 @@ class Recorder() {
         screenshots.toList()
     }
 
-    public fun doRecorder(channel: String, dir: String) {
+    public fun doRecorder(channel: String, dir: String, metadata: File = File(dir, "metadata.xml")) {
         if (channel.isNullOrEmpty())
             throw RuntimeException("empty channel")
 
         if (dir.isNullOrEmpty())
             throw RuntimeException("no directory specified")
 
-        val metadata = File(dir, "metadata.xml")
         val screenshots = readMetadata(metadata)
+
+        val imageProvider = if (File(dir).isDirectory)  {
+            DirectoryImageProvider(File(dir))
+        }  else ZipImageProvider(File(dir))
 
         logger.info("Got ${screenshots.size} screenshots to upload")
         val allImages = screenshots.map { screenshot ->
             // todo: get all the other tiles
             val imgs = Array<Array<BufferedImage>>(screenshot.tile_height!!) { h->
                 Array<BufferedImage>(screenshot.tile_width!!) { w->
-                    val file = (if (h == 0 &&  w == 0) File(dir, screenshot.name + ".png")
-                                else File(dir, "${screenshot.name}_${w}_${h}.png"))
+                    val file = (if (h == 0 &&  w == 0)  (screenshot.name + ".png")
+                        else  "${screenshot.name}_${w}_${h}.png")
 
-                    ImageIO.read(file)
+                    imageProvider.getImage(file)
                 }
             }
             val width = imgs[0].map{
