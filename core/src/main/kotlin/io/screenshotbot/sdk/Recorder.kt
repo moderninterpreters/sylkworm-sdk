@@ -156,6 +156,8 @@ class Recorder() {
         options.addOption("d", "dir", true, "Directory with screenshots, can also be a bundle.zip")
         options.addOption("c", "channel", true, "Channel name under which the screenshots should go under")
         options.addOption("m", "metadata", true, "Metadata file, defaults to dir/metadata.xml")
+        options.addOption("p", "is-production", false, "Is production")
+        options.addOption("b", "branch", true, "Branch")
 
 
         val parser = DefaultParser()
@@ -164,6 +166,12 @@ class Recorder() {
         val dir = cli.getOptionValue('d')
         val channel = cli.getOptionValue('c')
         val metadata = File(cli.getOptionValue('m')) ?: File(dir, "metadata.xml")
+        val status = RepoProcessor.getCommit(File("."))
+        this.commit = status?.commit
+        this.clean = status?.clean
+        this.production = cli.hasOption('p')
+        this.branch = cli.getOptionValue("branch")
+
         doRecorder(channel, dir, metadata)
 
     }
