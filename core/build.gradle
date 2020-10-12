@@ -49,6 +49,11 @@ signing {
 //    sign configurations.archives
 }
 
+jar {
+    // manifest {
+    //     attributes 'Main-Class': 'io.screenshotbot.sdk.Recorder'
+    // }
+}
 
 task runJar(type: JavaExec) {
    classpath = files('build/libs/lib.jar')
