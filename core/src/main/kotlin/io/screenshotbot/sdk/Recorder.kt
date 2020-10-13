@@ -138,6 +138,8 @@ class Recorder() {
     private var githubRepo: String? = ""
     var mapper = ObjectMapper()
     private val logger = LoggerFactory.getLogger(javaClass)
+    private var apiKey: String? = null
+    private var apiSecret: String? = null
 
     fun getAllImages(dir: String) = run {
         var dirFile = File(dir)
@@ -158,7 +160,8 @@ class Recorder() {
         options.addOption("m", "metadata", true, "Metadata file, defaults to dir/metadata.xml")
         options.addOption("p", "is-production", false, "Is production")
         options.addOption("b", "branch", true, "Branch")
-
+        options.addOption(null, "api-key", true, "Screenshotbot API key")
+        options.addOption(null, "api-secret", true, "Screenshotot API secret")
 
         val parser = DefaultParser()
         val cli = parser.parse(options, args)
@@ -171,6 +174,8 @@ class Recorder() {
         this.clean = status?.clean
         this.production = cli.hasOption('p')
         this.branch = cli.getOptionValue("branch")
+        this.apiKey = cli.getOptionValue("api-key") ?: readConfig().apiKey
+        this.apiSecret = cli.getOptionValue("api-secret") ?: readConfig().apiSecretKey
 
         doRecorder(channel, dir, metadata)
 
@@ -252,6 +257,14 @@ class Recorder() {
         makeRun(channel, allImages)
     }
 
+    fun getApiKey() = run {
+        this.apiKey ?: readConfig().apiKey
+    }
+
+    fun getApiSecret() = run {
+        this.apiSecret ?: readConfig().apiSecretKey
+    }
+
     private fun makeRun(channel: String, allImages: List<ScreenshotRecord>) = run {
         logger.info("Finalizing the reporter run")
         val recordsJson = mapper.writeValueAsString(allImages)
@@ -262,8 +275,8 @@ class Recorder() {
                          "is-clean" to clean.toString(),
                          "branch" to branch,
                          "is-trunk" to production.toString(),
-                         "api-key" to readConfig().apiKey,
-                         "api-secret-key" to readConfig().apiSecretKey))
+                         "api-key" to getApiKey(),
+                         "api-secret-key" to getApiSecret()))
             .responseObject<Result<CreateRunResponse>>(jacksonDeserializerOf(mapper)).second;
 
         if (resp.statusCode != 200) {
@@ -281,8 +294,8 @@ class Recorder() {
         val result: Result<ImageUploadResponse> =
             Fuel.post(buildUrl("/api/prepare-upload"),
                       listOf("name" to fileName, "hash" to hash,
-                         "api-key" to readConfig().apiKey,
-                         "api-secret-key" to readConfig().apiSecretKey))
+                         "api-key" to getApiKey(),
+                         "api-secret-key" to getApiSecret()))
                 .responseObject<Result<ImageUploadResponse>>(jacksonDeserializerOf(mapper)).third.get()
 
         val response = result.response!!
