@@ -160,6 +160,8 @@ class Recorder() {
         options.addOption("m", "metadata", true, "Metadata file, defaults to dir/metadata.xml")
         options.addOption("p", "is-production", false, "Is production")
         options.addOption("b", "branch", true, "Branch")
+        options.addOption("r", "repo", true, "Github repository")
+
         options.addOption(null, "api-key", true, "Screenshotbot API key")
         options.addOption(null, "api-secret", true, "Screenshotot API secret")
 
@@ -176,6 +178,7 @@ class Recorder() {
         this.branch = cli.getOptionValue("branch")
         this.apiKey = cli.getOptionValue("api-key") ?: readConfig().apiKey
         this.apiSecret = cli.getOptionValue("api-secret") ?: readConfig().apiSecretKey
+        this.githubRepo = cli.getOptionValue("repo")
 
         doRecorder(channel, dir, metadata)
 
