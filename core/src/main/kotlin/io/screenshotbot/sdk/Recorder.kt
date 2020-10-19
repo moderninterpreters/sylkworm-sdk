@@ -4,14 +4,12 @@ import com.fasterxml.jackson.annotation.JsonProperty
 import com.fasterxml.jackson.annotation.JsonSubTypes
 import com.fasterxml.jackson.annotation.JsonSubTypes.Type
 import com.fasterxml.jackson.annotation.JsonTypeInfo
-import com.fasterxml.jackson.annotation.JsonTypeName
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.dataformat.xml.XmlMapper
 import com.github.kittinunf.fuel.Fuel
 import com.github.kittinunf.fuel.jackson.jacksonDeserializerOf
 import com.google.common.hash.Hashing
-import com.google.common.io.Files
 import org.apache.commons.cli.DefaultParser
 import org.apache.commons.cli.Options
 import java.io.File
@@ -22,15 +20,10 @@ import com.google.common.io.ByteSource
 import org.apache.commons.cli.HelpFormatter
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.lib.Constants
-import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import java.awt.image.BufferedImage
-import java.awt.image.Raster
 import java.io.ByteArrayOutputStream
-import java.io.FileInputStream
-import java.util.Collections.emptyList
 import java.util.zip.ZipFile
-import java.util.zip.ZipInputStream
 import javax.imageio.ImageIO
 import javax.xml.stream.XMLInputFactory
 
@@ -41,13 +34,13 @@ import javax.xml.stream.XMLInputFactory
     property = "type"
 )
 @JsonSubTypes(
-    Type(value = ImageUploadResponse::class, name = "screenshot"),
+    Type(value = Image::class, name = "image"),
     Type(value = CreateRunResponse::class, name="run")
 )
 abstract class ApiResponse (val type: String)
 
-data class ImageUploadResponse (@JsonProperty var imageId: String = "",
-                                var uploadUrl:String = "") : ApiResponse("screenshot")
+data class Image (@JsonProperty var id: String = "",
+                  var uploadUrl:String = "") : ApiResponse("image")
 
 data class CreateRunResponse(@JsonProperty var runId: Int = 0) : ApiResponse("run")
 
@@ -287,7 +280,7 @@ class Recorder() {
             val data = ByteArrayOutputStream()
             ImageIO.write(outputImg, "png", data)
             val response = uploadImage(screenshot.name + ".png", data.toByteArray())
-            ScreenshotRecord(screenshot.name!!, response.imageId!!)
+            ScreenshotRecord(screenshot.name!!, response.id!!)
         }
 
         makeRun(channel, allImages)
@@ -327,12 +320,12 @@ class Recorder() {
     private fun uploadImage(fileName: String, data: ByteArray) = run {
         logger.info("Uploading file: " + fileName)
         val hash = getDigest(data)
-        val result: Result<ImageUploadResponse> =
+        val result: Result<Image> =
             Fuel.post(buildUrl("/api/screenshot"),
                       listOf("name" to fileName, "hash" to hash,
                          "api-key" to getApiKey(),
                          "api-secret-key" to getApiSecret()))
-                .responseObject<Result<ImageUploadResponse>>(jacksonDeserializerOf(mapper)).third.get()
+                .responseObject<Result<Image>>(jacksonDeserializerOf(mapper)).third.get()
 
         val response = result.response!!
 
