@@ -1,5 +1,10 @@
 package io.screenshotbot.sdk
 
+import com.fasterxml.jackson.annotation.JsonProperty
+import com.fasterxml.jackson.annotation.JsonSubTypes
+import com.fasterxml.jackson.annotation.JsonSubTypes.Type
+import com.fasterxml.jackson.annotation.JsonTypeInfo
+import com.fasterxml.jackson.annotation.JsonTypeName
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.dataformat.xml.XmlMapper
@@ -29,12 +34,24 @@ import java.util.zip.ZipInputStream
 import javax.imageio.ImageIO
 import javax.xml.stream.XMLInputFactory
 
-data class ImageUploadResponse(var imageId: String? = "",
-                               var uploadUrl:String? = "")
+@JsonTypeInfo(
+    use = JsonTypeInfo.Id.NAME,
+    include = JsonTypeInfo.As.EXISTING_PROPERTY,
+    visible = true,
+    property = "type"
+)
+@JsonSubTypes(
+    Type(value = ImageUploadResponse::class, name = "screenshot"),
+    Type(value = CreateRunResponse::class, name="run")
+)
+abstract class ApiResponse (val type: String)
 
-data class CreateRunResponse(var runId: Int = 0)
+data class ImageUploadResponse (@JsonProperty var imageId: String = "",
+                                var uploadUrl:String = "") : ApiResponse("screenshot")
 
-data class Result<T>(var result: Boolean = false, var response: T? = null, var error: String? = null)
+data class CreateRunResponse(@JsonProperty var runId: Int = 0) : ApiResponse("run")
+
+data class Result<T : ApiResponse>(var result: Boolean = false, var response: T? = null, var error: String? = null)
 data class ScreenshotRecord(val name: String, val imageId: String)
 
 data class Credential(var apiKey: String = "",
@@ -163,6 +180,7 @@ class Recorder() {
 
     private fun run(args: Array<String>) {
         mapper.registerModule(KotlinModule())
+
         val options = Options()
         options.addOption("d", "dir", true, "Directory with screenshots, can also be a bundle.zip")
         options.addOption("c", "channel", true, "Channel name under which the screenshots should go under")
@@ -310,7 +328,7 @@ class Recorder() {
         logger.info("Uploading file: " + fileName)
         val hash = getDigest(data)
         val result: Result<ImageUploadResponse> =
-            Fuel.post(buildUrl("/api/prepare-upload"),
+            Fuel.post(buildUrl("/api/screenshot"),
                       listOf("name" to fileName, "hash" to hash,
                          "api-key" to getApiKey(),
                          "api-secret-key" to getApiSecret()))
