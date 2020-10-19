@@ -42,7 +42,7 @@ abstract class ApiResponse (val type: String)
 data class Image (@JsonProperty var id: String = "",
                   var uploadUrl:String? = null) : ApiResponse("image")
 
-data class CreateRunResponse(@JsonProperty var runId: Int = 0) : ApiResponse("run")
+data class CreateRunResponse(@JsonProperty var id: Int = 0) : ApiResponse("run")
 
 data class Result<T : ApiResponse>(var success: Boolean = false, var response: T? = null, var error: String? = null)
 data class ScreenshotRecord(val name: String, val imageId: String)
