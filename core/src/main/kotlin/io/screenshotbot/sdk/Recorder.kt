@@ -44,7 +44,7 @@ data class Image (@JsonProperty var id: String = "",
 
 data class CreateRunResponse(@JsonProperty var runId: Int = 0) : ApiResponse("run")
 
-data class Result<T : ApiResponse>(var result: Boolean = false, var response: T? = null, var error: String? = null)
+data class Result<T : ApiResponse>(var success: Boolean = false, var response: T? = null, var error: String? = null)
 data class ScreenshotRecord(val name: String, val imageId: String)
 
 data class Credential(var apiKey: String = "",
