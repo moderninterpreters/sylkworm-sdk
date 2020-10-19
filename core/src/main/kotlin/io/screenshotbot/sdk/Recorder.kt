@@ -14,6 +14,7 @@ import java.lang.RuntimeException
 import com.fasterxml.jackson.module.kotlin.KotlinModule
 import com.fasterxml.jackson.module.kotlin.readValue
 import com.google.common.io.ByteSource
+import org.apache.commons.cli.HelpFormatter
 import org.eclipse.jgit.api.Git
 import org.eclipse.jgit.lib.Constants
 import org.slf4j.Logger
@@ -152,21 +153,35 @@ class Recorder() {
         ByteSource.wrap(data).hash(Hashing.md5()).toString()
     }
 
+    public fun printHelp(options: Options) {
+        val helpFormatter = HelpFormatter()
+        helpFormatter.printHelp("java -jar recorder.jar [options]",
+            "Process and record screenshots/snapshots to Screenshotbot.io",
+            options,
+            "Feel free to contact support@screenshotbot.io for any questions")
+    }
+
     private fun run(args: Array<String>) {
         mapper.registerModule(KotlinModule())
         val options = Options()
         options.addOption("d", "dir", true, "Directory with screenshots, can also be a bundle.zip")
         options.addOption("c", "channel", true, "Channel name under which the screenshots should go under")
         options.addOption("m", "metadata", true, "Metadata file, defaults to dir/metadata.xml")
-        options.addOption("p", "is-production", false, "Is production")
+        options.addOption("p", "is-production", false, "Is `production`. For instance, CI runs. Only CI runs on master or release branches will be `promoted`. All other runs can still be viewed on screenshotbot.io")
         options.addOption("b", "branch", true, "Branch")
         options.addOption("r", "repo", true, "Github repository")
 
-        options.addOption(null, "api-key", true, "Screenshotbot API key")
-        options.addOption(null, "api-secret", true, "Screenshotot API secret")
+        options.addOption(null, "api-key", true, "Screenshotbot API key, otherwise we read from ~/.screenshotbot")
+        options.addOption(null, "api-secret", true, "Screenshotot API secret, otherwise we read from ~/.screenshotbot")
+        options.addOption("h", "help", false, "Display this help message")
 
         val parser = DefaultParser()
         val cli = parser.parse(options, args)
+
+        if (cli.hasOption('h')) {
+            printHelp(options)
+            return
+        }
 
         val dir = cli.getOptionValue('d')
         val channel = cli.getOptionValue('c')
