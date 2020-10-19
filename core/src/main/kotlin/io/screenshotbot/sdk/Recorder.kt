@@ -40,7 +40,7 @@ import javax.xml.stream.XMLInputFactory
 abstract class ApiResponse (val type: String)
 
 data class Image (@JsonProperty var id: String = "",
-                  var uploadUrl:String = "") : ApiResponse("image")
+                  var uploadUrl:String? = null) : ApiResponse("image")
 
 data class CreateRunResponse(@JsonProperty var runId: Int = 0) : ApiResponse("run")
 
